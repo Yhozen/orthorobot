@@ -19,13 +19,13 @@ jobs:
           build-list: '.'
           
       - name: Rename .love file
-        run: mv game.love OrthoRobot.love
+        run: mv game.love orthorobot.love
           
       - name: Upload .love artifact
         uses: actions/upload-artifact@v4
         with:
           name: game-love
-          path: 'OrthoRobot.love'
+          path: 'orthorobot.love'
 
   build-linux:
     needs: build-love
@@ -42,8 +42,8 @@ jobs:
         uses: love-actions/love-actions-linux@v1
         with:
           love-ref: '11.5'
-          love-package: 'OrthoRobot.love'
-          app-name: 'OrthoRobot'
+          love-package: 'orthorobot.love'
+          app-name: 'orthorobot'
           bundle-id: 'com.maurice.orthorobot'
           icon-path: 'stabyourself.png'
           
@@ -66,14 +66,14 @@ jobs:
           name: game-love
           
       - name: Rename to game.love
-        run: mv OrthoRobot.love game.love
+        run: mv orthorobot.love game.love
 
       - name: Build macOS App
         uses: love-actions/love-actions-macos-portable@v1
         with:
           love-ref: '11.5'
           love-package: 'game.love'
-          app-name: 'OrthoRobot'
+          app-name: 'orthorobot'
           
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
