@@ -62,11 +62,14 @@ jobs:
         with:
           name: game-love
           
+      - name: Rename to game.love
+        run: mv OrthoRobot.love game.love
+
       - name: Build macOS App
         uses: love-actions/love-actions-macos-portable@v1
         with:
           love-version: '11.5'
-          love-file-path: 'OrthoRobot.love'
+          love-file-path: 'game.love'
           app-name: 'OrthoRobot'
           app-id: 'com.maurice.orthorobot'
           
