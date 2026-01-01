@@ -3,12 +3,7 @@ function love.conf(t)
 	t.identity = "ortho_robot"
 	t.author = "Maurice"
 	
-	if t.screen then
-		t.screen.vsync = true
-		t.screen.width = 1024
-		t.screen.height = 768
-	end
-	
+	-- LÖVE 11.x uses t.window (t.screen is deprecated)
 	if t.window then
 		t.window.vsync = true
 		t.window.width = 1024

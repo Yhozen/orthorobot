@@ -1,5 +1,5 @@
 --ORTHO ROBOT
---by Maurice Gu�gan
+--by Maurice Gu�gan
 --Stabyourself.net
 --Made in 7 days for a competition (Total time: ~50 hours)
 
@@ -10,16 +10,62 @@
 --Other credits
 --yay.png (star) by http://www.psdgraphics.com/
 
---Version compatibility stuff
-major, minor, revision, codename = love.getVersion()
-if major == 0 and minor <= 9 then
-	lbutton = "l"
-	rbutton = "r"
-else
-	lbutton = 1
-	rbutton = 2
+--LÖVE 11.5 compatibility shims
+--Color shim: automatically converts 0-255 values to 0-1 range for LÖVE 11.x
+local original_setColor = love.graphics.setColor
+local original_setBackgroundColor = love.graphics.setBackgroundColor
+
+-- Helper function to convert color values from 0-255 to 0-1 range
+local function convertColor(val)
+	if type(val) == "number" and val > 1 then
+		return val / 255
+	end
+	return val
 end
+
+love.graphics.setColor = function(...)
+	local args = {...}
+	local n = #args
+	-- Handle table argument: setColor({r, g, b, a})
+	if n == 1 and type(args[1]) == "table" then
+		local t = {}
+		for i = 1, math.min(#args[1], 4) do
+			t[i] = convertColor(args[1][i])
+		end
+		return original_setColor(unpack(t))
+	end
+	-- Handle individual arguments: setColor(r, g, b, a)
+	for i = 1, math.min(n, 4) do
+		args[i] = convertColor(args[i])
+	end
+	return original_setColor(unpack(args))
+end
+
+love.graphics.setBackgroundColor = function(...)
+	local args = {...}
+	local n = #args
+	-- Handle table argument: setBackgroundColor({r, g, b})
+	if n == 1 and type(args[1]) == "table" then
+		local t = {}
+		for i = 1, math.min(#args[1], 4) do
+			t[i] = convertColor(args[1][i])
+		end
+		return original_setBackgroundColor(unpack(t))
+	end
+	-- Handle individual arguments: setBackgroundColor(r, g, b)
+	for i = 1, math.min(n, 4) do
+		args[i] = convertColor(args[i])
+	end
+	return original_setBackgroundColor(unpack(args))
+end
+
+--Button constants for LÖVE 11.x
+lbutton = 1
+rbutton = 2
+
 math.mod = math.fmod
+
+--drawq compatibility (deprecated in 11.x, but we'll keep it for compatibility)
 if not love.graphics.drawq then
 	love.graphics.drawq = love.graphics.draw
 end
@@ -65,8 +111,8 @@ function love.load()
 	creditsr = 0
 	creditss = 0
 	
-	currentbackground = {0, 0, 0}
-	wantedbackground = {0, 0, 0}
+	currentbackground = {0, 0, 0}  -- Already in 0-1 range for LÖVE 11.x
+	wantedbackground = {0, 0, 0}    -- Already in 0-1 range for LÖVE 11.x
 	
 	shadowfactor = 0.8
 	shadowtopfactor = 0.2
@@ -138,17 +184,17 @@ function love.load()
 	ssssimg = love.graphics.newImage("ssss.png");ssssimg:setFilter("nearest", "nearest")
 	accentimg = love.graphics.newImage("accent.png");accentimg:setFilter("nearest", "nearest")
 	
-	menumusic = love.audio.newSource("sounds/menu_back.ogg")
+	menumusic = love.audio.newSource("sounds/menu_back.ogg", "stream")  -- LÖVE 11.x requires source type
 	menumusic:setLooping(true)
 	menumusic:setVolume(0.01)
-	gamemusic = love.audio.newSource("sounds/game_back.ogg")
+	gamemusic = love.audio.newSource("sounds/game_back.ogg", "stream")  -- "stream" for music
 	gamemusic:setLooping(true)
-	stabsound = love.audio.newSource("sounds/stab.ogg")
+	stabsound = love.audio.newSource("sounds/stab.ogg", "static")  -- "static" for short sound effects
 	
-	backsound = love.audio.newSource("sounds/back.ogg")
-	proceedsound = love.audio.newSource("sounds/proceed.ogg")
-	winningsound = love.audio.newSource("sounds/winning.ogg")
-	coinsound = love.audio.newSource("sounds/coin.ogg")
+	backsound = love.audio.newSource("sounds/back.ogg", "static")
+	proceedsound = love.audio.newSource("sounds/proceed.ogg", "static")
+	winningsound = love.audio.newSource("sounds/winning.ogg", "static")
+	coinsound = love.audio.newSource("sounds/coin.ogg", "static")
 	
 	loadlevels()
 	scale = 1
@@ -172,11 +218,8 @@ end
 
 function changescale(s)
 	scale = s
-	if love.graphics.setMode then
-		love.graphics.setMode(1024*scale, 768*scale, false, true)
-	elseif love.window.setMode then
-		love.window.setMode(1024*scale, 768*scale, {fullscreen=false, vsync=true})
-	end
+	-- LÖVE 11.x uses love.window.setMode
+	love.window.setMode(1024*scale, 768*scale, {fullscreen=false, vsync=true})
 	
 	love.graphics.setLineWidth(1/scale)
 end
@@ -254,7 +297,7 @@ function love.draw()
 	end
 end
 
-function love.keypressed(key, unicode)
+function love.keypressed(key, scancode, isrepeat)
 	if gamestate == "game" then
 		game_keypressed(key)
 	elseif gamestate == "menu" then
@@ -293,7 +336,7 @@ function mygraphicsgetScissor()
 	end
 end
 
-function love.mousepressed(x, y, button)
+function love.mousepressed(x, y, button, istouch, presses)
 	x = x * (1/scale)
 	y = y * (1/scale)
 	if gamestate == "game" then
@@ -305,7 +348,7 @@ function love.mousepressed(x, y, button)
 	end
 end
 
-function love.mousereleased(x, y, button)
+function love.mousereleased(x, y, button, istouch, presses)
 	x = x * (1/scale)
 	y = y * (1/scale)
 	if gamestate == "game" then
@@ -406,6 +449,8 @@ function loadmap(name)
 			for x = 1, mapwidth do
 				local r, g, b, a = imgdata:getPixel( x-1, z+(y-1)*mapdepth-1 )
 				
+				r, g, b = round(r*255), round(g*255), round(b*255)
+				
 				for i = 1, #tilecolors do
 					if r == tilecolors[i][1] and g == tilecolors[i][2] and b == tilecolors[i][3] then
 						map[x][mapheight-y+1][mapdepth-z+1].tilenum = i
@@ -497,6 +542,8 @@ function loadmenumap(name)
 		for z = 1, menumapdepth do
 			for x = 1, menumapwidth do
 				local r, g, b, a = imgdata:getPixel( x-1, z+(y-1)*menumapdepth-1 )
+				
+				r, g, b = round(r*255), round(g*255), round(b*255)
 				
 				for i = 1, #tilecolors do
 					if r == tilecolors[i][1] and g == tilecolors[i][2] and b == tilecolors[i][3] then
