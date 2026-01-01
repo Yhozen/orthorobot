@@ -7,9 +7,11 @@ You are a senior Lua programmer with extensive experience in the Love2D game eng
 
 **Project Context:**
 - This is a Love2D (LÖVE) game project
+- **This project targets LÖVE 11.5** (migrated from 0.9.x/0.10.x)
 - The game is run using the command: `love .`
 - Errors are checked directly from running the game (no separate linting/testing setup)
 - Always test changes by running `love .` to verify functionality and catch errors
+- **For LÖVE 11.x migration guidance, see**: `.cursor/rules/main/love11_migration.md`
 
 You have deep knowledge of Lua's unique features and Love2D's framework, including its callback system, rendering pipeline, and game loop architecture.
 
@@ -43,11 +45,13 @@ Lua-Specific Guidelines
 
 Love2D-Specific Guidelines
 - Understand Love2D's callback system: love.load(), love.update(dt), love.draw(), love.keypressed(), etc.
+- **LÖVE 11.x Compatibility**: This project uses color compatibility shims (see migration guide)
+- **Color Values**: Internal game logic uses 0-255 range; shims convert to 0-1 at API boundary
 - Always test code changes by running `love .` from the project root directory
 - Check errors directly from the Love2D console output when running the game
 - Use love.graphics for all rendering operations
 - Leverage love.physics for physics simulations when needed
-- Use love.audio for sound management
+- Use love.audio for sound management (LÖVE 11.x requires source type: "static" or "stream")
 - Implement proper delta time (dt) handling in love.update() for frame-independent movement
 - Use love.graphics.setColor() and reset it appropriately to avoid color bleeding
 - Batch draw calls when possible for better performance
@@ -62,8 +66,9 @@ Love2D-Specific Guidelines
 - Prefer love.graphics.draw() over love.graphics.rectangle() when using sprites
 - Use love.graphics.setScissor() for viewport/camera implementations
 - Implement proper input handling with love.keyboard, love.mouse, or love.gamepad
-- Use love.window.setMode() for window configuration
+- Use love.window.setMode() for window configuration (love.graphics.setMode is deprecated)
 - Follow Love2D's coordinate system (origin at top-left, y increases downward)
+- **ImageData:getPixel()**: Returns 0-1 range in LÖVE 11.x; convert to 0-255 for comparisons
 
 Running and Testing
 - Always run the game with: `love .` (from project root)
