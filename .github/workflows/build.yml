@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-love:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Package .love file
+        uses: love-actions/love-actions-core@v1
+        with:
+          love-version: '11.5'
+          archive-name: 'Ortho Robot'
+          
+      - name: Upload .love artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-love
+          path: 'Ortho Robot.love'
+
+  build-linux:
+    needs: build-love
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download .love artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: game-love
+          
+      - name: Build Linux AppImage
+        uses: love-actions/love-actions-linux@v1
+        with:
+          love-version: '11.5'
+          love-file-path: 'Ortho Robot.love'
+          
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            *.AppImage
+
+  build-macos:
+    needs: build-love
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download .love artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: game-love
+          
+      - name: Build macOS App
+        uses: love-actions/love-actions-macos-portable@v1
+        with:
+          love-version: '11.5'
+          love-file-path: 'Ortho Robot.love'
+          app-name: 'Ortho Robot'
+          app-id: 'com.maurice.orthorobot'
+          
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            *.dmg
+            *.zip
