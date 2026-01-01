@@ -41,8 +41,10 @@ jobs:
       - name: Build Linux AppImage
         uses: love-actions/love-actions-linux@v1
         with:
-          love-version: '11.5'
-          love-file-path: 'OrthoRobot.love'
+          love-ref: '11.5'
+          love-package: 'OrthoRobot.love'
+          app-name: 'OrthoRobot'
+          bundle-id: 'com.maurice.orthorobot'
           
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -68,10 +70,9 @@ jobs:
       - name: Build macOS App
         uses: love-actions/love-actions-macos-portable@v1
         with:
-          love-version: '11.5'
-          love-file-path: 'game.love'
+          love-ref: '11.5'
+          love-package: 'game.love'
           app-name: 'OrthoRobot'
-          app-id: 'com.maurice.orthorobot'
           
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
