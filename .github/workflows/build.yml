@@ -45,6 +45,7 @@ jobs:
           love-package: 'OrthoRobot.love'
           app-name: 'OrthoRobot'
           bundle-id: 'com.maurice.orthorobot'
+          icon-path: 'stabyourself.png'
           
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
