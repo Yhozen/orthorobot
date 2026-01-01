@@ -17,13 +17,13 @@ jobs:
         uses: love-actions/love-actions-core@v1
         with:
           love-version: '11.5'
-          archive-name: 'Ortho Robot'
+          archive-name: 'OrthoRobot'
           
       - name: Upload .love artifact
         uses: actions/upload-artifact@v4
         with:
           name: game-love
-          path: 'Ortho Robot.love'
+          path: 'OrthoRobot.love'
 
   build-linux:
     needs: build-love
@@ -40,7 +40,7 @@ jobs:
         uses: love-actions/love-actions-linux@v1
         with:
           love-version: '11.5'
-          love-file-path: 'Ortho Robot.love'
+          love-file-path: 'OrthoRobot.love'
           
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -64,8 +64,8 @@ jobs:
         uses: love-actions/love-actions-macos-portable@v1
         with:
           love-version: '11.5'
-          love-file-path: 'Ortho Robot.love'
-          app-name: 'Ortho Robot'
+          love-file-path: 'OrthoRobot.love'
+          app-name: 'OrthoRobot'
           app-id: 'com.maurice.orthorobot'
           
       - name: Upload macOS artifact
