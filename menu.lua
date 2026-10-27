@@ -443,6 +443,7 @@ end
 
 function loadlevels()
 	filetable = love.filesystem.getDirectoryItems( "maps/" )
+	table.sort(filetable)
 	for i = 1, #filetable do
 		local path = filetable[i]
 		filetable[i] = {}
@@ -655,4 +656,5 @@ function menu_togglesound()
 		pausebuttons["menutogglesound"].text = "Sound ON"
 		pausebuttons["menutogglesound"].textwidth = levelselectfont:getWidth(pausebuttons["menutogglesound"].text)
 	end
+	savesave()
 end

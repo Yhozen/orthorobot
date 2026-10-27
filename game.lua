@@ -1046,7 +1046,7 @@ function win()
 	savesave()
 	
 	if currentmap == unlockedlevels then
-		unlockedlevels = unlockedlevels + 1
+		unlockedlevels = math.min(#filetable, unlockedlevels + 1)
 	end
 	
 	winwindowtimer = 0
@@ -1117,6 +1117,7 @@ function pause_togglesound()
 		pausebuttons["togglesound"].text = "Sound ON"
 		pausebuttons["togglesound"].textwidth = levelselectfont:getWidth(pausebuttons["togglesound"].text)
 	end
+	savesave()
 end
 
 function pause_tomenu()
