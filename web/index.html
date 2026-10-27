@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ortho Robot</title><link rel="stylesheet" href="style.css"><link rel="icon" href="data:,"></head>
+<body><main><h1>Ortho Robot</h1><p>A perspective puzzle game by Stabyourself.net</p>
+<div id="stage"><canvas id="canvas" width="1024" height="768" tabindex="0" aria-label="Ortho Robot game"></canvas><div id="overlay"><h2>Change your perspective.</h2><p id="status" role="status" aria-live="polite">Loading game engine…</p><button id="start" disabled>Play</button></div></div>
+<p><button id="fullscreen">Fullscreen</button> <span id="storage" role="status">Progress is stored in this browser when storage is available.</span></p>
+<p>Desktop keyboard and mouse: arrow keys or WASD to move, drag the mouse to change perspective, Escape to pause. See Help in the game for details.</p>
+<p>Close or reload this tab to leave the game. Saves are local to this browser and site; private browsing may discard them.</p>
+<footer><a href="LICENSE.txt">Game license &amp; credits</a> · <a href="love.js-LICENSE.txt">love.js license</a> · <a href="https://stabyourself.net/orthorobot/">Original game</a></footer>
+</main><script src="app.js"></script><script src="game.js" onerror="failGame('Could not load game assets.')"></script><script src="love.js" onload="engineReady()" onerror="failGame('Could not load game engine.')"></script></body></html>
