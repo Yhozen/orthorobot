@@ -71,6 +71,6 @@ The runtime version check substitutes a tiny diagnostic game in browser requests
 it never modifies the deployment files. Gameplay checks use the real game archive.
 Browser test screenshots should be visually reviewed alongside assertions.
 
-Native `love .`, Firefox/Safari, live CI, and hosting-provider deployment have not
+Native `love .`, Firefox/Safari, and hosting-provider deployment have not
 been exercised in this environment. The static game is intended for desktop mouse
 and keyboard; no touch-control rewrite was made. Nothing is automatically deployed.
