@@ -1,0 +1,9 @@
+node_modules/
+build/
+dist/
+evidence/
+__pycache__/
+save.txt
+.alchemy/
+.env
+.env.*

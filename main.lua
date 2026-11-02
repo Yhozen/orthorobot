@@ -222,6 +222,7 @@ function changescale(s)
 	love.window.setMode(1024*scale, 768*scale, {fullscreen=false, vsync=true})
 	
 	love.graphics.setLineWidth(1/scale)
+	if filetable then savesave() end
 end
 
 function love.update(dt)
@@ -388,7 +389,7 @@ function loadmap(name)
 		name = string.sub(name, 1, -5)
 	end
 	
-	if love.filesystem.exists("maps/" .. name .. ".txt") == false or love.filesystem.exists("maps/" .. name .. ".png") == false then
+	if not love.filesystem.getInfo("maps/" .. name .. ".txt", "file") or not love.filesystem.getInfo("maps/" .. name .. ".png", "file") then
 		return false
 	end
 	
@@ -497,7 +498,7 @@ function loadmenumap(name)
 		name = string.sub(name, 1, -5)
 	end
 	
-	if love.filesystem.exists("maps/" .. name .. ".txt") == false or love.filesystem.exists("maps/" .. name .. ".png") == false then
+	if not love.filesystem.getInfo("maps/" .. name .. ".txt", "file") or not love.filesystem.getInfo("maps/" .. name .. ".png", "file") then
 		return false
 	end
 	
@@ -783,53 +784,53 @@ function round(num, idp)
 	return math.floor(num * mult + 0.5) / mult
 end
 
+-- Treat browser/local saves as untrusted data; damaged records keep defaults.
 function loadsave()
-	if not love.filesystem.exists("save.txt") then
-		return
+	if not love.filesystem.getInfo("save.txt", "file") then return end
+	local ok, contents = pcall(love.filesystem.read, "save.txt")
+	if not ok or type(contents) ~= "string" then return end
+	local mapindex
+	local function number(value)
+		local n = tonumber(value)
+		if n and n == n and n >= 0 and n < math.huge then return n end
 	end
-	
-	local txtcontents = love.filesystem.read("save.txt")
-	txtcontents = txtcontents:split(";")
-	local currentmap
-	local s
-	for i = 1, #txtcontents do
-		s = txtcontents[i]:split("=")
-		if s[1] == "map" then
-			for j = 1, #filetable do
-				if s[2] == filetable[j].path then
-					currentmap = j
+	for key, value in contents:gmatch("([^;=]+)=([^;]*);") do
+		if key == "map" then
+			mapindex = nil
+			for i, map in ipairs(filetable) do
+				if map.path == value then mapindex = i; break end
+			end
+		elseif key == "sound" then
+			if value == "true" then soundenabled = true
+			elseif value == "false" then soundenabled = false end
+		elseif key == "scale" then
+			local n = tonumber(value)
+			if n == 1 or n == 0.75 then scale = n end
+		elseif mapindex then
+			local map = filetable[mapindex]
+			if key == "time" or key == "steps" or key == "warps" then
+				local n = number(value)
+				if n then
+					map["high" .. key] = key == "time" and round(n, 2) or n
+				end
+			elseif key == "coins" then
+				for triple in value:gmatch("[^:]+") do
+					local x, y, z = triple:match("^(%d+),(%d+),(%d+)$")
+					x, y, z = number(x), number(y), number(z)
+					if x and y and z then
+						table.insert(map.collectedcoins, {x, y, z})
+					end
 				end
 			end
-		elseif s[1] == "time" then
-			filetable[currentmap].hightime = round(tonumber(s[2]), 2)
-		elseif s[1] == "steps" then
-			filetable[currentmap].highsteps = tonumber(s[2])
-		elseif s[1] == "warps" then
-			filetable[currentmap].highwarps = tonumber(s[2])
-		elseif s[1] == "coins" then
-			s2 = s[2]:split(":")
-			for j = 1, #s2 do
-				s3 = s2[j]:split(",")
-				table.insert(filetable[currentmap].collectedcoins, {tonumber(s3[1]), tonumber(s3[2]), tonumber(s3[3])})
+			if map.hightime then
+				unlockedlevels = math.min(#filetable, math.max(unlockedlevels, mapindex + 1))
 			end
-		elseif s[1] == "sound" then
-			if s[2] == "true" then
-				soundenabled = true
-			else
-				soundenabled = false
-			end
-		elseif s[1] == "scale" then
-			scale = tonumber(s[2])
-		end
-		
-		if filetable[currentmap].hightime then
-			unlockedlevels = currentmap + 1
 		end
 	end
 end
 
 function savesave()
-	s = ""
+	local s = ""
 	for i = 1, #filetable do
 		s = s .. "map=" .. filetable[i].path .. ";"
 		if filetable[i].hightime then
@@ -860,7 +861,8 @@ function savesave()
 		s = s .. "sound=false;"
 	end
 	
-	love.filesystem.write("save.txt", s)
+	local ok, result = pcall(love.filesystem.write, "save.txt", s)
+	if not ok or not result then print("Could not save progress; continuing without storage.") end
 end
 
 function rotatedsquare(mode, x, y, r, d)
