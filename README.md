@@ -45,6 +45,9 @@ Storage failures must allow session-only play. Successful storage hydration enab
 queued flushes every two seconds and on page hide. Sudden tab/browser termination
 can still lose recent progress. Saves belong to the browser and site origin;
 clearing site data clears progress. Malformed save records are ignored safely.
+One tab owns the save filesystem at a time using Web Locks. Additional tabs wait
+before loading the game, then read the latest save when the owner closes. Browsers
+without Web Locks allow session-only play, without writing shared storage.
 
 ## Verification status
 

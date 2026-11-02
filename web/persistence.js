@@ -38,9 +38,31 @@ if (typeof ENVIRONMENT_IS_PTHREAD === 'undefined' || !ENVIRONMENT_IS_PTHREAD) {
       window.addEventListener('pagehide', flush);
     }
   }
+  function hydrate() {
+    try {
+      FS.mount(IDBFS, {}, '/home/web_user/love');
+      FS.syncfs(true, hydrated);
+    } catch (error) { hydrated(error); }
+  }
+  // IDBFS mirrors the entire mount, including deletions. Keep ownership from
+  // hydration until this document closes so another tab cannot flush a stale tree.
   try {
     FS.mkdirTree('/home/web_user/love');
-    FS.mount(IDBFS, {}, '/home/web_user/love');
-    FS.syncfs(true, hydrated);
+    const locks = typeof navigator !== 'undefined' && navigator.locks;
+    if (locks) {
+      function ownStorage() {
+        if (Module.onStorageAcquired) Module.onStorageAcquired();
+        hydrate();
+        return new Promise(() => {}); // The browser releases the lock on tab close.
+      }
+      locks.request('orthorobot-save-storage', {ifAvailable: true}, lock => {
+        if (lock) return ownStorage();
+        if (Module.onStorageWaiting) Module.onStorageWaiting();
+        return locks.request('orthorobot-save-storage', ownStorage);
+      }).catch(hydrated);
+    } else {
+      // Never enable uncoordinated writers on browsers without Web Locks.
+      hydrated(new Error('Web Locks are unavailable; saves are disabled in this tab.'));
+    }
   } catch (error) { hydrated(error); }
 }

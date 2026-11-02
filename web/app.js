@@ -6,7 +6,7 @@ var Module;
   const overlay = document.getElementById('overlay');
   const status = document.getElementById('status');
   const start = document.getElementById('start');
-  let started = false, failed = false, timeout;
+  let started = false, failed = false, waitingForStorage = false, timeout;
   window.failGame = function (message) {
     if (failed) return;
     failed = true;
@@ -31,7 +31,19 @@ var Module;
     onStorageWarning: function () {
       document.getElementById('storage').textContent = 'Storage is unavailable. You can play, but progress may not survive a reload.';
     },
-    setStatus: text => { if (!failed && text) status.textContent = text; },
+    onStorageWaiting: function () {
+      waitingForStorage = true;
+      clearTimeout(timeout);
+      status.textContent = 'The game is open in another tab. Close that tab to continue here with your latest save.';
+    },
+    onStorageAcquired: function () {
+      if (waitingForStorage) {
+        waitingForStorage = false;
+        status.textContent = 'Loading your latest save…';
+        timeout = setTimeout(() => failGame('Startup timed out.'), 60000);
+      }
+    },
+    setStatus: text => { if (!failed && !waitingForStorage && text) status.textContent = text; },
     onRuntimeInitialized: function () {
       clearTimeout(timeout);
       if (!failed) { overlay.hidden = true; canvas.focus(); }
