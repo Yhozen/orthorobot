@@ -4,6 +4,8 @@ A Lua/LÖVE perspective puzzle game by Maurice Guégan / Stabyourself.net.
 The desktop source targets **LÖVE 11.5** (`love .`). All game assets and 16 levels
 are included; no backend is required. See `LICENSE.txt` for credits and license.
 
+Play at **https://orthorobot.rccpr.tech**.
+
 ## Static web build
 
 Requires Node.js 22+, npm and Python 3:
@@ -31,6 +33,25 @@ gesture before starting, reports load failures, and offers fullscreen.
 Desktop controls: arrows/WASD move, mouse drag changes perspective, Escape pauses.
 See the in-game Help page for the puzzle rules.
 
+## Alchemy deployment
+
+`infra/alchemy.run.ts` deploys the built `dist/` directory as Cloudflare Worker
+static assets at `orthorobot.rccpr.tech`. Deployment dependencies are separate from
+the game build and require Node.js 24.11.1+ (or Bun). Set `CLOUDFLARE_ACCOUNT_ID`
+and `CLOUDFLARE_API_TOKEN` in your environment, then run from the repository root:
+
+```sh
+npm ci --ignore-scripts
+npm test && npm run build
+npm --prefix infra ci --ignore-scripts
+CI=1 npm --prefix infra run deploy
+```
+
+`npm --prefix infra run plan` previews updates. Alchemy stores deployment state
+remotely in the isolated `alchemy-state-store-orthorobot` Worker so another checkout
+can update the same deployment. Credentials and local state are excluded from Git.
+Deployments are manual; the web workflow continues to build artifacts only.
+
 ## Packaging and saves
 
 `scripts/package.py` creates `build/orthorobot.love` from an allowlist of game
@@ -51,7 +72,7 @@ without Web Locks allow session-only play, without writing shared storage.
 
 ## Verification status
 
-The Python packaging test, four Node launcher/persistence tests, and Lua save tests
+The Python packaging test, eight Node launcher/persistence tests, and Lua save tests
 pass. Run the Lua checks with `luatex --luaonly tests/save.lua` (or `lua tests/save.lua`).
 
 The actual static output was tested under `/dist/` in Chromium 154: menu, level
@@ -67,6 +88,7 @@ To repeat browser checks with Python Playwright and system Chromium installed:
 python3 -m http.server 8080 --bind 127.0.0.1
 python3 scripts/browser-check.py
 python3 scripts/browser-edge-check.py
+python3 scripts/browser-storage-check.py
 python3 scripts/runtime-version-check.py
 ```
 
@@ -74,6 +96,11 @@ The runtime version check substitutes a tiny diagnostic game in browser requests
 it never modifies the deployment files. Gameplay checks use the real game archive.
 Browser test screenshots should be visually reviewed alongside assertions.
 
-Native `love .`, Firefox/Safari, and hosting-provider deployment have not
-been exercised in this environment. The static game is intended for desktop mouse
-and keyboard; no touch-control rewrite was made. Nothing is automatically deployed.
+The storage regression also runs against the live site with
+`GAME_URL=https://orthorobot.rccpr.tech/ python3 scripts/browser-storage-check.py`.
+It completes level 1, checks that a second tab waits, and verifies that ownership
+transfer preserves the save and unlocks level 2. Missing Web Locks are also tested.
+
+Native `love .` and Firefox/Safari have not been exercised in this environment.
+The static game is intended for desktop mouse and keyboard; no touch-control
+rewrite was made. Nothing is automatically deployed.
